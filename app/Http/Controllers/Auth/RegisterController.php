@@ -4,9 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
+use App\Receivers;
+use App\Sellers;
 use App\User;
+use http\Env\Request;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
@@ -56,18 +61,63 @@ class RegisterController extends Controller
         ]);
     }
 
-    /**
-     * Create a new user instance after a valid registration.
-     *
-     * @param  array  $data
-     * @return \App\User
-     */
+
+
     protected function create(array $data)
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+        if ($data['secim']=='tedarikci')
+        {
+            $user=User::create([
+               'name' => $data['name'],
+               'email' => $data['email'],
+               'password' => Hash::make($data['password']),
+               'user_type'=>'seller'
+            ]);
+
+        $to_name = 'OBLONG';
+        $to_email = $data['email'];
+        $username=$data['name'];
+        $body = [];
+        $mailData = array('body'=>$body,'username'=>$username);
+        Mail::send('email.register-mail',$mailData, function ($message) use ($to_name,$to_email){
+           $message->to($to_email,$to_name)->subject('Aramıza Hoşgeldiniz');
+           $message->from(env('MAIL_USERNAME'), 'OBLONG');
+       });
+            return $user;
+        }
+
+
+        elseif ($data['secim']=='alici')
+        {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+                'user_type'=>'receiver'
+
         ]);
+        $to_name = 'OBLONG';
+        $to_email = $data['email'];
+        $username=$data['name'];
+        $body = [];
+        $mailData = array('body'=>$body,'username'=>$username);
+        Mail::send('email.register-mail',$mailData, function ($message) use ($to_name,$to_email){
+            $message->to($to_email,$to_name)->subject('Aramıza Hoşgeldiniz');
+            $message->from(env('MAIL_USERNAME'), 'OBLONG');
+        });
+            return $user;
+        }
+
+    }
+
+    public function messagebox(Request $data)
+    {
+        DB::table('message')->insert([
+            'name' => $data->get('name'),
+            'email' => $data->get('email'),
+            'subject'=>$data->get('subject'),
+            'message'=>$data->get('message')
+            ]);
+        return back();
     }
 }

@@ -2,16 +2,17 @@
 
 namespace App\Imports;
 
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
+use App\User;
+use Maatwebsite\Excel\Concerns\ToModel;
 
-class UserImport implements ToCollection
+class UserImport implements ToModel
 {
-    /**
-    * @param Collection $collection
-    */
-    public function collection(Collection $collection)
+    public function model(array $row)
     {
-        //
+        return new User([
+            'name' => $row[0],
+            'email' => $row[1],
+            'password' => $row[2]
+        ]);
     }
 }
